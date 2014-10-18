@@ -112,7 +112,7 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         StashUser user = participant.getUser();
         int pos = list.indexOf(user);
         if(pos >= 0) {
-            System.out.println(user.getDisplayName() + " has approved, removing from list");
+            //System.out.println(user.getDisplayName() + " has approved, removing from list");
             list.remove(pos);
         }
     }
@@ -139,7 +139,7 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         }
 
         Vector<StashUser> approvers = getApprovers(settings, num);
-        System.out.println("Requires approval from the following users: " + getUserNames(approvers));
+        //System.out.println("Requires approval from the following users: " + getUserNames(approvers));
 
         // the author of pull request has approved it implicitly
         approvers.remove(pull_request.getAuthor().getUser());
