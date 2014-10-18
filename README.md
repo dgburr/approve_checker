@@ -15,4 +15,3 @@ are performed for each active rule:
    approved it.
 
 Approve Checker has been tested with Stash versions 3.3.0 and 3.3.2.
-

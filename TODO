@@ -1,2 +1,3 @@
 * Support an arbitrary number of rules (AUI Tab element?)
 * Add mechanism to require approval from only 'n' approvers in list
+* i18n support
