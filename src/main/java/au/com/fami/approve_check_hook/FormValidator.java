@@ -27,6 +27,7 @@ package au.com.fami.approve_check_hook;
 import com.atlassian.stash.user.UserService;
 import com.atlassian.stash.setting.*;
 import com.atlassian.stash.repository.*;
+import java.util.Vector;
 
 
 public class FormValidator implements RepositorySettingsValidator {
@@ -43,11 +44,12 @@ public class FormValidator implements RepositorySettingsValidator {
 
     @Override
     public void validate(Settings settings, SettingsValidationErrors errors, Repository repository) {
-        for(int i = 1; i < 6; i++) checkRule(settings, errors, repository, i);
+        Vector<String> branch_list = new Vector<String>();
+        for(int i = 1; i < 6; i++) checkRule(settings, errors, repository, branch_list, i);
     }
 
 
-    private void checkRule(Settings settings, SettingsValidationErrors errors, Repository repository, int num) {
+    private void checkRule(Settings settings, SettingsValidationErrors errors, Repository repository, Vector<String> branch_list, int num) {
         String field_enable = "enable" + num;
         String field_branch = "branch" + num;
         String field_approvers = "approvers" + num;
@@ -57,11 +59,17 @@ public class FormValidator implements RepositorySettingsValidator {
 
         String branch = settings.getString(field_branch);
         if(branch != null && !branch.isEmpty()) {
-            Ref ref =  metadataService.resolveRef(repository, branch);
-            if(ref == null) {
-                errors.addFieldError(field_branch, "Error: Unknown reference '" + branch + "'");
-            } else if(!(ref instanceof Branch)) {
-                errors.addFieldError(field_branch, "Error: Reference '" + branch + "' is not a branch");
+            if(branch_list.indexOf(branch) >= 0) {
+	        errors.addFieldError(field_branch, "Error: Multiple rules referring to branch");
+            } else {
+                branch_list.add(branch);
+
+                Ref ref =  metadataService.resolveRef(repository, branch);
+                if(ref == null) {
+                    errors.addFieldError(field_branch, "Error: Unknown reference");
+                } else if(!(ref instanceof Branch)) {
+                    errors.addFieldError(field_branch, "Error: Reference is not a branch");
+                }
             }
         } else {
             errors.addFieldError(field_branch, "Error: No branch selected");
