@@ -1,0 +1,28 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <vendor name="Daniel Burr" url="https://github.com/dgburr" />
+        <version>${project.version}</version>
+        <!-- <param name="plugin-icon">images/plugin-icon.png</param> -->
+        <param name="plugin-logo">images/icon.png</param>
+    </plugin-info>
+
+    <component-import key="repositoryMetadataService" interface="com.atlassian.stash.repository.RepositoryMetadataService" />
+    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
+
+    <web-resource key="approve_checker.resources">
+        <resource type="download" name="store-dialog.js" location="js/store-dialog.js" />
+        <context>stash.page.repository.settings.hooks</context>
+    </web-resource>
+
+    <repository-hook key="approve_checker.hook" name="Approve Check Hook" class="au.com.fami.approve_check_hook.ApproveCheck">
+        <description>Prevent merging to specified branches until the necessary approvals are given</description>
+        <icon>images/icon.png</icon>
+        <config-form name="Approval Check Configuration" key="approve_checker_config">
+            <view>stash.config.approve_checker.config.formContents</view>
+            <directory location="/static/"/>
+        </config-form>
+        <validator>au.com.fami.approve_check_hook.FormValidator</validator>
+    </repository-hook>
+    
+</atlassian-plugin>

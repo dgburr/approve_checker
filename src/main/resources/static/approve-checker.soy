@@ -1,0 +1,48 @@
+{namespace stash.config.approve_checker.config}
+
+/**
+ * @param num
+ * @param config
+ * @param? errors
+ */
+{template .rule}
+    {call aui.form.checkboxField}
+        {param legendContent: 'Rule ' + $num /}
+        {param fields: [[
+            'id':        'enable' + $num,
+            'labelText': 'Enable',
+            'isChecked': $config['enable' + $num]
+        ]] /}
+    {/call}
+    <div id="rule{$num}-container" style="display:{$config['enable' + $num]? 'block': 'none'}">
+        {call Stash.template.branchSelector.field}
+            {param id:              'branch' + $num /}
+            {param initialValue:    $config['branch' + $num] /}
+            {param labelText:       'Branch' /}
+            {param descriptionText: 'Any pushes with changes to this branch will be checked' /}
+            {param errorTexts:      $errors ? $errors['branch' + $num] : null /}
+        {/call}
+        {call aui.form.textField}
+            {param id:              'approvers' + $num /}
+            {param value:           $config['approvers' + $num] /}
+            {param labelContent:    'Approvers' /}
+            {param descriptionText: 'Comma-separated list of people who must give approval for changes to be merged into the specified branch' /}
+            {param errorTexts:      $errors ? $errors['approvers' + $num] : null /}
+        {/call}
+    </div>
+{/template}
+
+
+/**
+ * @param config
+ * @param? errors
+ */
+{template .formContents}
+    {for $i in range(1,6)}
+        {call .rule}
+            {param num:    $i /}
+            {param config: $config /}
+            {param errors: $errors /}
+        {/call}
+    {/for}
+{/template}
