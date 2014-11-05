@@ -14,4 +14,4 @@ are performed for each active rule:
    Note that the author of the pull request is considered to have implicitly
    approved it.
 
-Approve Checker has been tested with Stash versions 3.3.0 and 3.3.2.
+Approve Checker has been tested with Stash 3.0.0 and later.
