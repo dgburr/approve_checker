@@ -137,25 +137,25 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
 
         Vector<StashUser> approvers = getApprovers(settings, num);
         //System.out.println("Requires approval from the following users: " + getUserNames(approvers));
-        int minApprovers = settings.getInt("min" + num, approvers.size());
-        if(minApprovers == 0) minApprovers = approvers.size();
-        int approvalCount = 0;
+        int min_approvers = settings.getInt("min" + num, approvers.size());
+        if(min_approvers == 0) min_approvers = approvers.size();
+        int approval_count = 0;
         
         // the author of pull request has approved it implicitly
         if(approvers.contains(pull_request.getAuthor().getUser())) {
             approvers.remove(pull_request.getAuthor().getUser());
-            approvalCount++;
+            approval_count++;
         }
 
         // remove any reviewers or participants who have given their approval
         for(PullRequestParticipant reviewer : pull_request.getReviewers()) {
-            if(checkApproval(reviewer, approvers)) approvalCount++;
+            if(checkApproval(reviewer, approvers)) approval_count++;
         }
         for(PullRequestParticipant participant : pull_request.getParticipants()) {
-            if(checkApproval(participant, approvers)) approvalCount++;
+            if(checkApproval(participant, approvers)) approval_count++;
         }
 
-        if(approvalCount < minApprovers) {
+        if(approval_count < min_approvers) {
             merge_request.veto("Merge denied", "Still require approvals from the following users: " + getUserNames(approvers));
         }
     }

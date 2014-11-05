@@ -34,6 +34,7 @@
             {param value:           $config['min' + $num] /}
             {param labelContent:    'Minimum Number of Approvers' /}
             {param descriptionText: 'Select the minimum number of approvers, or 0 to require all' /}
+            {param extraClasses:    'long' /}
             {param errorTexts:      $errors ? $errors['min' + $num] : null /}
         {/call}
     </div>

@@ -45,7 +45,7 @@ public class FormValidator implements RepositorySettingsValidator {
         String field_enable = "enable" + num;
         String field_branch = "branch" + num;
         String field_approvers = "approvers" + num;
-        String field_minCount = "min" + num;
+        String field_min_count = "min" + num;
 
         Boolean enabled = settings.getBoolean(field_enable);
         if(enabled == null) return;
@@ -79,14 +79,15 @@ public class FormValidator implements RepositorySettingsValidator {
             errors.addFieldError(field_approvers, "Error: No approvers specified");
         }
 
-        int approverCount = settings.getInt(field_minCount, 0);
-        if (approverCount < 0) {
-            errors.addFieldError(field_minCount,
-                    "Error: At least one approver should be required (or 0 for all)");
-        } else if (approvers != null
-                && approverCount > approvers.split(",").length) {
-            errors.addFieldError(field_minCount,
-                    "Error: Cannot have a count higher than the number of approvers specified");
+        try {
+            int approver_count = settings.getInt(field_min_count, 0);
+            if(approver_count < 0) {
+                errors.addFieldError(field_min_count, "Error: At least one approver should be required (or 0 for all)");
+            } else if(approvers != null && approver_count > approvers.split(",").length) {
+                errors.addFieldError(field_min_count, "Error: Cannot have a count higher than the number of approvers specified");
+            }
+        } catch(NumberFormatException e) {
+            errors.addFieldError(field_min_count, "Error: Not a valid integer");
         }
     }
 }
