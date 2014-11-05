@@ -29,6 +29,13 @@
             {param descriptionText: 'Comma-separated list of people who must give approval for changes to be merged into the specified branch' /}
             {param errorTexts:      $errors ? $errors['approvers' + $num] : null /}
         {/call}
+        {call aui.form.textField}
+            {param id:              'min' + $num /}
+            {param value:           $config['min' + $num] /}
+            {param labelContent:    'Minimum Number of Approvers' /}
+            {param descriptionText: 'Select the minimum number of approvers, or 0 to require all' /}
+            {param errorTexts:      $errors ? $errors['min' + $num] : null /}
+        {/call}
     </div>
 {/template}
 

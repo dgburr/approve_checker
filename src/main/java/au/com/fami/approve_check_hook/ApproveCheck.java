@@ -97,16 +97,21 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
 
     /**
      * Remove participant from list if they have given their approval
+     *
+     * @return Whether the participant is in the list of approvers and has given their approval
      */
-    void checkApproval(PullRequestParticipant participant, Vector<StashUser> list) {
-        if(!participant.isApproved()) return;
+    boolean checkApproval(PullRequestParticipant participant, Vector<StashUser> list) {
+        if(!participant.isApproved()) return false;
 
         StashUser user = participant.getUser();
         int pos = list.indexOf(user);
         if(pos >= 0) {
             //System.out.println(user.getDisplayName() + " has approved, removing from list");
             list.remove(pos);
+            return true;
         }
+
+        return false;
     }
  
 
@@ -132,15 +137,25 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
 
         Vector<StashUser> approvers = getApprovers(settings, num);
         //System.out.println("Requires approval from the following users: " + getUserNames(approvers));
-
+        int minApprovers = settings.getInt("min" + num, approvers.size());
+        if(minApprovers == 0) minApprovers = approvers.size();
+        int approvalCount = 0;
+        
         // the author of pull request has approved it implicitly
-        approvers.remove(pull_request.getAuthor().getUser());
+        if(approvers.contains(pull_request.getAuthor().getUser())) {
+            approvers.remove(pull_request.getAuthor().getUser());
+            approvalCount++;
+        }
 
         // remove any reviewers or participants who have given their approval
-        for(PullRequestParticipant reviewer : pull_request.getReviewers()) checkApproval(reviewer, approvers);
-        for(PullRequestParticipant participant : pull_request.getParticipants()) checkApproval(participant, approvers);
+        for(PullRequestParticipant reviewer : pull_request.getReviewers()) {
+            if(checkApproval(reviewer, approvers)) approvalCount++;
+        }
+        for(PullRequestParticipant participant : pull_request.getParticipants()) {
+            if(checkApproval(participant, approvers)) approvalCount++;
+        }
 
-        if(approvers.size() > 0) {
+        if(approvalCount < minApprovers) {
             merge_request.veto("Merge denied", "Still require approvals from the following users: " + getUserNames(approvers));
         }
     }
