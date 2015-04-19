@@ -1,0 +1,6 @@
+# Build output
+/target/
+
+# Intellij
+.idea
+*.iml

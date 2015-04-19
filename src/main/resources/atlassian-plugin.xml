@@ -7,13 +7,18 @@
         <param name="plugin-logo">images/icon.png</param>
     </plugin-info>
 
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="approve_checker"/>
+
     <web-resource key="approve_checker.resources" name="Approve Check Web Resources">
         <description>Javascript for Approve Checker</description>
         <resource type="download" name="store-dialog.js" location="js/store-dialog.js" />
         <context>stash.page.repository.settings.hooks</context>
     </web-resource>
 
-    <repository-hook key="approve_checker.hook" name="Approve Check Repository Hook" class="au.com.fami.approve_check_hook.ApproveCheck">
+    <repository-hook key="approve_checker.hook" name="Approve Check Repository Hook"
+                     i18n-name-key="approve_checker_plugin.name"
+                     class="au.com.fami.approve_check_hook.ApproveCheck">
         <description>Pre-receive hook and merge check</description>
         <icon>images/icon.png</icon>
         <config-form name="Approval Check Configuration Dialog" key="approve_checker_config">
@@ -28,5 +33,6 @@
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer" />
     <component-import key="repositoryMetadataService" interface="com.atlassian.stash.repository.RepositoryMetadataService" />
     <component-import key="userService" interface="com.atlassian.stash.user.UserService" />
+    <component-import key="i18nService" interface="com.atlassian.stash.i18n.I18nService"/>
    
 </atlassian-plugin>
