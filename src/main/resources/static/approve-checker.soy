@@ -7,10 +7,10 @@
  */
 {template .rule}
     {call aui.form.checkboxField}
-        {param legendContent: 'Rule ' + $num /}
+        {param legendContent: getText('approve_checker_plugin.pullrequest.settings.checkbox.label', $num) /}
         {param fields: [[
             'id':        'enable' + $num,
-            'labelText': 'Enable',
+            'labelText': getText('approve_checker_plugin.pullrequest.settings.field.enable.label'),
             'isChecked': $config['enable' + $num]
         ]] /}
     {/call}
@@ -18,22 +18,22 @@
         {call Stash.template.branchSelector.field}
             {param id:              'branch' + $num /}
             {param initialValue:    $config['branch' + $num] /}
-            {param labelText:       'Branch' /}
-            {param descriptionText: 'Any pushes with changes to this branch will be checked' /}
+            {param labelText:       getText('approve_checker_plugin.pullrequest.settings.field.branch.label') /}
+            {param descriptionText: getText('approve_checker_plugin.pullrequest.settings.field.branch.desc') /}
             {param errorTexts:      $errors ? $errors['branch' + $num] : null /}
         {/call}
         {call aui.form.textField}
             {param id:              'approvers' + $num /}
             {param value:           $config['approvers' + $num] /}
-            {param labelContent:    'Approvers' /}
-            {param descriptionText: 'Comma-separated list of people who must give approval for changes to be merged into the specified branch' /}
+            {param labelContent:    getText('approve_checker_plugin.pullrequest.settings.field.approvers.label') /}
+            {param descriptionText: getText('approve_checker_plugin.pullrequest.settings.field.approvers.desc') /}
             {param errorTexts:      $errors ? $errors['approvers' + $num] : null /}
         {/call}
         {call aui.form.textField}
             {param id:              'min' + $num /}
             {param value:           $config['min' + $num] /}
-            {param labelContent:    'Minimum Number of Approvers' /}
-            {param descriptionText: 'Select the minimum number of approvers, or 0 to require all' /}
+            {param labelContent:    getText('approve_checker_plugin.pullrequest.settings.field.numapprovers.label') /}
+            {param descriptionText: getText('approve_checker_plugin.pullrequest.settings.field.numapprovers.desc') /}
             {param extraClasses:    'long' /}
             {param errorTexts:      $errors ? $errors['min' + $num] : null /}
         {/call}

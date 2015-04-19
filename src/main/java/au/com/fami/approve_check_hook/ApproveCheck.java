@@ -18,6 +18,7 @@ package au.com.fami.approve_check_hook;
 
 import com.atlassian.stash.hook.repository.*;
 import com.atlassian.stash.hook.HookResponse;
+import com.atlassian.stash.i18n.I18nService;
 import com.atlassian.stash.pull.PullRequestParticipant;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.scm.pull.MergeRequest;
@@ -25,6 +26,7 @@ import com.atlassian.stash.setting.Settings;
 import com.atlassian.stash.repository.*;
 import com.atlassian.stash.user.UserService;
 import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.scm.git.GitRefPattern;
 import java.util.Collection;
 import java.util.Vector;
 import java.util.Iterator;
@@ -34,11 +36,13 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
 
     private final UserService userService;
     private final RepositoryMetadataService metadataService;
+    private final I18nService i18nService;
 
 
-    public ApproveCheck(UserService userService, RepositoryMetadataService metadataService) {
+    public ApproveCheck(UserService userService, RepositoryMetadataService metadataService, I18nService i18nService) {
         this.userService = userService;
         this.metadataService = metadataService;
+        this.i18nService = i18nService;
     }
 
 
@@ -56,14 +60,19 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
       */
     @Override
     public boolean onReceive(RepositoryHookContext context, Collection<RefChange> refChanges, HookResponse hookResponse) {
-        for(int i = 1; i < 6; i++) if(!checkPushRule(context, refChanges, i)) return false;
+        for(int i = 1; i < 6; i++) {
+            CheckStatus status = checkPushRule(context, refChanges, i);
+            if (!status.isPassed()) {
+                hookResponse.err().println(status.getMessage());
+                return false;
+            }
+        }
         return true;
     }
 
 
     private boolean isRuleEnabled(Settings settings, int num) {
-        boolean enabled = settings.getBoolean("enable" + num, false);
-        return enabled;
+        return settings.getBoolean("enable" + num, false);
     }
 
 
@@ -131,7 +140,8 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         if(!pull_request.getToRef().getId().equals(ref.getId())) return;
 
         if(pull_request.isClosed()) {
-            merge_request.veto("Request closed", "This pull request is already closed");
+            merge_request.veto(i18nService.getMessage("approve_checker_plugin.pullrequest.closed"),
+                    i18nService.getMessage("approve_checker_plugin.pullrequest.closed.long"));
             return;
         }
 
@@ -156,26 +166,31 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         }
 
         if(approval_count < min_approvers) {
-            merge_request.veto("Merge denied", "Still require approvals from the following users: " + getUserNames(approvers));
+            merge_request.veto(i18nService.getMessage("approve_checker_plugin.pullrequest.denied"),
+                    i18nService.getMessage("approve_checker_plugin.pullrequest.denied.long", getUserNames(approvers)));
         }
     }
 
 
-    private boolean checkPushRule(RepositoryHookContext context, Collection<RefChange> refChanges, int num) {
+    private CheckStatus checkPushRule(RepositoryHookContext context, Collection<RefChange> refChanges, int num) {
         Settings settings = context.getSettings();
 
         // skip rule if not enabled
-        boolean enabled = isRuleEnabled(settings, num);
+        if(!isRuleEnabled(settings, num)) {
+            return CheckStatus.passed();
+        }
         //System.out.println("Check push rule " + num + ", enabled? " + enabled);
-        if(!enabled) return true;
 
         // reject if any incoming references match the branch from the rule
         Ref ref = getBranch(settings, context.getRepository(), num);
         for(RefChange refChange : refChanges) {
             //System.out.println("Compare push branch '" + refChange.getRefId() + "' vs '" + ref.getId() + "'");
-            if(refChange.getRefId().equals(ref.getId())) return false;
+            if(refChange.getRefId().equals(ref.getId())) {
+                return CheckStatus.failed(i18nService.getMessage("approve_checker_plugin.push.reject",
+                        GitRefPattern.HEADS.unqualify(refChange.getRefId())));
+            }
         }
 
-        return true;
+        return CheckStatus.passed();
     }
 }

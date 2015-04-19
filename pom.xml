@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.com.fami</groupId>
     <artifactId>approve_check_hook</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <name>Approve Checker</name>
     <description>This plugin prevents pull requests from being merged to certain branches until they are approved by a specific list of users.</description>
@@ -53,13 +53,13 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.soy</groupId>
-            <artifactId>soy-template-renderer-api</artifactId>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-scm-git-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.plugins</groupId>
-            <artifactId>atlassian-plugins-webresource</artifactId>
+            <groupId>com.atlassian.soy</groupId>
+            <artifactId>soy-template-renderer-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -123,7 +123,7 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.atlassian.maven.plugins</groupId>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
@@ -135,10 +135,10 @@
     </build>
     
     <properties>
-        <stash.version>3.3.2</stash.version>
+        <stash.version>3.7.2</stash.version>
         <stash.runtime.version>${stash.version}</stash.runtime.version>
         <stash.data.version>${stash.version}</stash.data.version>
-        <amps.version>5.0.4</amps.version>
+        <amps.version>5.0.13</amps.version>
         <!-- <plugin.testrunner.version>1.2.0</plugin.testrunner.version> -->
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
     </properties>
