@@ -16,29 +16,43 @@
 
 package au.com.fami.approve_check_hook;
 
-import com.atlassian.stash.hook.repository.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Vector;
+
 import com.atlassian.stash.hook.HookResponse;
-import com.atlassian.stash.pull.PullRequestParticipant;
+import com.atlassian.stash.hook.repository.PreReceiveRepositoryHook;
+import com.atlassian.stash.hook.repository.RepositoryHookContext;
+import com.atlassian.stash.hook.repository.RepositoryMergeRequestCheck;
+import com.atlassian.stash.hook.repository.RepositoryMergeRequestCheckContext;
 import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestParticipant;
+import com.atlassian.stash.repository.Ref;
+import com.atlassian.stash.repository.RefChange;
+import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryMetadataService;
 import com.atlassian.stash.scm.pull.MergeRequest;
 import com.atlassian.stash.setting.Settings;
-import com.atlassian.stash.repository.*;
-import com.atlassian.stash.user.UserService;
+import com.atlassian.stash.user.StashAuthenticationContext;
 import com.atlassian.stash.user.StashUser;
-import java.util.Collection;
-import java.util.Vector;
-import java.util.Iterator;
+import com.atlassian.stash.user.UserService;
+import com.atlassian.stash.user.UserType;
 
 
 public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRequestCheck {
 
+    private static final int NUMBER_OF_CHECKS = 5;
     private final UserService userService;
     private final RepositoryMetadataService metadataService;
+    private final StashAuthenticationContext stashAuthenticationContext;
 
 
-    public ApproveCheck(UserService userService, RepositoryMetadataService metadataService) {
+    public ApproveCheck(UserService userService, 
+        RepositoryMetadataService metadataService,
+        StashAuthenticationContext stashAuthenticationContext) {
         this.userService = userService;
         this.metadataService = metadataService;
+        this.stashAuthenticationContext = stashAuthenticationContext;
     }
 
 
@@ -47,7 +61,9 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
      */
     @Override
     public void check(RepositoryMergeRequestCheckContext context) {
-        for(int i = 1; i < 6; i++) checkMergeRule(context, i);
+        for(int i = 1; i <= NUMBER_OF_CHECKS; i++) {
+          checkMergeRule(context, i);
+        }
     }
 
 
@@ -56,14 +72,16 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
       */
     @Override
     public boolean onReceive(RepositoryHookContext context, Collection<RefChange> refChanges, HookResponse hookResponse) {
-        for(int i = 1; i < 6; i++) if(!checkPushRule(context, refChanges, i)) return false;
+        for(int i = 1; i <= NUMBER_OF_CHECKS; i++) {
+          if(!checkPushRule(context, refChanges, i)) 
+            return false;
+        }
         return true;
     }
 
 
     private boolean isRuleEnabled(Settings settings, int num) {
-        boolean enabled = settings.getBoolean("enable" + num, false);
-        return enabled;
+        return settings.getBoolean("enable" + num, false);
     }
 
 
@@ -101,7 +119,9 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
      * @return Whether the participant is in the list of approvers and has given their approval
      */
     boolean checkApproval(PullRequestParticipant participant, Vector<StashUser> list) {
-        if(!participant.isApproved()) return false;
+        if(!participant.isApproved()) {
+          return false;
+        }
 
         StashUser user = participant.getUser();
         int pos = list.indexOf(user);
@@ -114,6 +134,11 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         return false;
     }
  
+
+    private boolean areServiceUsersAlwaysAllowed(Settings settings, int num) {
+      return settings.getBoolean("allowServiceUser" + num, false);
+    }
+
 
     private void checkMergeRule(RepositoryMergeRequestCheckContext context, int num) {
         Settings settings = context.getSettings();
@@ -134,7 +159,7 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
             merge_request.veto("Request closed", "This pull request is already closed");
             return;
         }
-
+        
         Vector<StashUser> approvers = getApprovers(settings, num);
         //System.out.println("Requires approval from the following users: " + getUserNames(approvers));
         int min_approvers = settings.getInt("min" + num, approvers.size());
@@ -149,10 +174,14 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
 
         // remove any reviewers or participants who have given their approval
         for(PullRequestParticipant reviewer : pull_request.getReviewers()) {
-            if(checkApproval(reviewer, approvers)) approval_count++;
+            if(checkApproval(reviewer, approvers)) {
+              approval_count++;
+            }
         }
         for(PullRequestParticipant participant : pull_request.getParticipants()) {
-            if(checkApproval(participant, approvers)) approval_count++;
+            if(checkApproval(participant, approvers)) {
+              approval_count++;
+            }
         }
 
         if(approval_count < min_approvers) {
@@ -167,13 +196,22 @@ public class ApproveCheck implements PreReceiveRepositoryHook, RepositoryMergeRe
         // skip rule if not enabled
         boolean enabled = isRuleEnabled(settings, num);
         //System.out.println("Check push rule " + num + ", enabled? " + enabled);
-        if(!enabled) return true;
+        if(!enabled) {
+          return true;
+        }
 
         // reject if any incoming references match the branch from the rule
         Ref ref = getBranch(settings, context.getRepository(), num);
         for(RefChange refChange : refChanges) {
             //System.out.println("Compare push branch '" + refChange.getRefId() + "' vs '" + ref.getId() + "'");
-            if(refChange.getRefId().equals(ref.getId())) return false;
+            if(refChange.getRefId().equals(ref.getId())) {
+              // don't reject it if service users pushes are allowed and the service user pushed it
+              if (areServiceUsersAlwaysAllowed(settings, num) 
+                  && this.stashAuthenticationContext.getCurrentUser().getType() == UserType.SERVICE) {
+                continue;
+              }
+              return false;
+            }
         }
 
         return true;

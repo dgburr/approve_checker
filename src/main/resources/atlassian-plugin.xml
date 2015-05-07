@@ -3,7 +3,6 @@
         <description>${project.description}</description>
         <vendor name="Daniel Burr" url="https://github.com/dgburr" />
         <version>${project.version}</version>
-        <!-- <param name="plugin-icon">images/plugin-icon.png</param> -->
         <param name="plugin-logo">images/icon.png</param>
     </plugin-info>
 
@@ -28,5 +27,6 @@
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer" />
     <component-import key="repositoryMetadataService" interface="com.atlassian.stash.repository.RepositoryMetadataService" />
     <component-import key="userService" interface="com.atlassian.stash.user.UserService" />
+    <component-import key="stashAuthenticationContext" interface="com.atlassian.stash.user.StashAuthenticationContext" />
    
 </atlassian-plugin>
