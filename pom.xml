@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.com.fami</groupId>
     <artifactId>approve_check_hook</artifactId>
-    <version>1.1</version>
+    <version>1.2-SNAPSHOT</version>
 
     <name>Approve Checker</name>
     <description>This plugin prevents pull requests from being merged to certain branches until they are approved by a specific list of users.</description>
@@ -44,7 +44,6 @@
         <dependency>
             <groupId>com.atlassian.stash</groupId>
             <artifactId>stash-spi</artifactId>
-            <version>${stash.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

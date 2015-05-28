@@ -37,6 +37,15 @@
             {param extraClasses:    'long' /}
             {param errorTexts:      $errors ? $errors['min' + $num] : null /}
         {/call}
+        {call aui.form.checkboxField}
+            {param legendContent:   'Allow Service User' /}
+            {param fields: [[
+              'id':                 'allowServiceUser' + $num,
+              'isChecked':          $config['allowServiceUser' + $num],
+              'labelText':          'Enabled'
+            ]] /} 
+            {param descriptionText: 'Always allow service users with access keys (e.g. CI Server) to push, despite of missing approvers.' /}
+        {/call}
     </div>
 {/template}
 
